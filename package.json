@@ -6,7 +6,8 @@
     "dev": "next dev --hostname localhost",
     "build": "next build",
     "start": "next start --hostname localhost",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "release": "python3 scripts/create_release.py"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",
