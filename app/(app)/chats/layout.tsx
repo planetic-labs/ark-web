@@ -51,7 +51,7 @@ export default function ChatsLayout({ children }: ChatLayoutProps) {
     if (!isLoading && chats.length === 0) {
       initChatsMutation.mutate();
     }
-  }, [chats, isLoading]);
+  }, [chats, isLoading, initChatsMutation]);
 
   const handleChatClick = (chatId: string) => {
     router.push(ROUTES.chat(chatId));

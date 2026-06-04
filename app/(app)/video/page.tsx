@@ -59,6 +59,24 @@ export default function VideoArchivePage() {
     }
   }
 
+  const updateSavedPosition = React.useCallback((vidId: string, pos: number) => {
+    setPlaylists((prev) =>
+      prev.map((pl) => ({
+        ...pl,
+        videos: pl.videos.map((v) => (v.id === vidId ? { ...v, savedPosition: pos } : v)),
+      }))
+    );
+  }, []);
+
+  const toggleStudied = React.useCallback((vidId: string) => {
+    setPlaylists((prev) =>
+      prev.map((pl) => ({
+        ...pl,
+        videos: pl.videos.map((v) => (v.id === vidId ? { ...v, studied: !v.studied } : v)),
+      }))
+    );
+  }, []);
+
   // Simulated player timer
   useEffect(() => {
     let interval: any;
@@ -78,16 +96,7 @@ export default function VideoArchivePage() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, activeVideoId]);
-
-  const updateSavedPosition = (vidId: string, pos: number) => {
-    setPlaylists((prev) =>
-      prev.map((pl) => ({
-        ...pl,
-        videos: pl.videos.map((v) => (v.id === vidId ? { ...v, savedPosition: pos } : v)),
-      }))
-    );
-  };
+  }, [isPlaying, activeVideoId, activeVideo, toggleStudied, updateSavedPosition]);
 
   const handleSelectVideo = (vidId: string) => {
     setIsPlaying(false);
@@ -96,15 +105,6 @@ export default function VideoArchivePage() {
     if (video) {
       setPlaybackTime(video.savedPosition);
     }
-  };
-
-  const toggleStudied = (vidId: string) => {
-    setPlaylists((prev) =>
-      prev.map((pl) => ({
-        ...pl,
-        videos: pl.videos.map((v) => (v.id === vidId ? { ...v, studied: !v.studied } : v)),
-      }))
-    );
   };
 
   const formatSeconds = (totalSec: number) => {

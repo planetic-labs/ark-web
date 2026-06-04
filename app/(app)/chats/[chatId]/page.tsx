@@ -98,7 +98,7 @@ export default function ChatWindowPage() {
     if (!isLoading && messages.length === 0 && currentChat) {
       seedMessagesMutation.mutate();
     }
-  }, [messages, isLoading, currentChat]);
+  }, [messages, isLoading, currentChat, seedMessagesMutation]);
 
   // Scroll to bottom
   useEffect(() => {
