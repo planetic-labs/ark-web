@@ -1,24 +1,29 @@
 @import "tailwindcss";
-@config "../tailwind.config.ts";
 
-:root {
-  --canvas: #E7E3DA;
-  --bg: #FFFFFF;
-  --bg-warm: #FCFAF5;
-  --ink: #221E17;
-  --ink-soft: #6E655A;
-  --ink-faint: #A69D8F;
-  --line: #ECE7DD;
-  --line-soft: #F4F1EA;
-  --amber: #B9770C;
-  --amber-bright: #E0951A;
-  --amber-wash: #FAF1DC;
-  --warrior-bg: #FCF4E3;
+@theme {
+  --color-canvas: #E7E3DA;
+  --color-bg: #FFFFFF;
+  --color-bg-warm: #FCFAF5;
+  --color-ink: #221E17;
+  --color-ink-soft: #6E655A;
+  --color-ink-faint: #A69D8F;
+  --color-line: #ECE7DD;
+  --color-line-soft: #F4F1EA;
+  
+  --color-amber: #B9770C;
+  --color-amber-bright: #E0951A;
+  --color-amber-wash: #FAF1DC;
+  
+  --color-warrior-bg: #FCF4E3;
+
+  --font-display: "Spectral", serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
 }
 
 body {
-  background-color: var(--canvas);
-  color: var(--ink);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
   min-height: 100vh;
 }
 
@@ -31,9 +36,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--line);
+  background: var(--color-line);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-faint);
+  background: var(--color-ink-faint);
 }
