@@ -3,12 +3,6 @@ name: Build and Push Docker Image
 on:
   release:
     types: [published, created]
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'
-      - '[0-9]*'
 
 permissions:
   contents: read
