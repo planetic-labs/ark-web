@@ -31,11 +31,11 @@ export default function ChatsLayout({ children }: ChatLayoutProps) {
   const initChatsMutation = useMutation({
     mutationFn: async () => {
       const defaults = [
-        { name: 'Инкубатор', is_group: true, members: [] },
-        { name: 'Реанимация.Интенсив', is_group: true, members: [] },
-        { name: 'Текущие материалы Работы+', is_group: true, members: [] },
-        { name: 'Технический', is_group: true, members: [] },
-        { name: 'Общение внутриКовчега', is_group: true, members: [] },
+        { name: 'Инкубатор', is_group: true, member_ids: [] },
+        { name: 'Реанимация.Интенсив', is_group: true, member_ids: [] },
+        { name: 'Текущие материалы Работы+', is_group: true, member_ids: [] },
+        { name: 'Технический', is_group: true, member_ids: [] },
+        { name: 'Общение внутриКовчега', is_group: true, member_ids: [] },
       ];
       for (const chat of defaults) {
         await chatsApi.create(chat);

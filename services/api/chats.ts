@@ -4,7 +4,7 @@ import { Chat, Message } from '@/types/shared';
 export interface ChatCreateData {
   name?: string;
   is_group: boolean;
-  members: string[]; // User IDs
+  member_ids: string[]; // User IDs
 }
 
 export interface MessageCreateData {
