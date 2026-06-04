@@ -93,9 +93,25 @@ export default function ChatWindowPage() {
     },
   });
 
+  // Flag to prevent infinite seeding calls
+  const seedTriggered = useRef(false);
+
+  // Reset seeding trigger when chat changes
+  useEffect(() => {
+    seedTriggered.current = false;
+  }, [chatId]);
+
   // Auto trigger seed if empty messages
   useEffect(() => {
-    if (!isLoading && messages.length === 0 && currentChat) {
+    if (
+      !isLoading &&
+      messages.length === 0 &&
+      currentChat &&
+      !seedTriggered.current &&
+      !seedMessagesMutation.isPending &&
+      !seedMessagesMutation.isSuccess
+    ) {
+      seedTriggered.current = true;
       seedMessagesMutation.mutate();
     }
   }, [messages, isLoading, currentChat, seedMessagesMutation]);
