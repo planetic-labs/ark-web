@@ -46,9 +46,19 @@ export default function ChatsLayout({ children }: ChatLayoutProps) {
     },
   });
 
+  // Flag to prevent infinite initialization calls
+  const initTriggered = React.useRef(false);
+
   // Auto trigger init if loaded and empty
   React.useEffect(() => {
-    if (!isLoading && chats.length === 0) {
+    if (
+      !isLoading &&
+      chats.length === 0 &&
+      !initTriggered.current &&
+      !initChatsMutation.isPending &&
+      !initChatsMutation.isSuccess
+    ) {
+      initTriggered.current = true;
       initChatsMutation.mutate();
     }
   }, [chats, isLoading, initChatsMutation]);
