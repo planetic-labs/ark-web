@@ -104,8 +104,13 @@ def group_commits(commits: list[str]) -> str:
 def get_changelog() -> str:
     """Generates a grouped changelog from the latest tag to HEAD."""
     try:
-        latest_tag: str = run_git_command(["describe", "--tags", "--abbrev=0"])
-        log_range: str = f"{latest_tag}..HEAD"
+        # Check if any tags exist in the repository to avoid stderr noise from describe
+        has_tags = bool(run_git_command(["tag"]))
+        if has_tags:
+            latest_tag = run_git_command(["describe", "--tags", "--abbrev=0"])
+            log_range = f"{latest_tag}..HEAD"
+        else:
+            log_range = "HEAD"
     except Exception:
         log_range = "HEAD"
 
