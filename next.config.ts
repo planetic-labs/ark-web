@@ -4,10 +4,14 @@ import fs from "fs";
 import path from "path";
 
 const getGitVersion = (): string => {
+  const isDev = process.env.NODE_ENV !== "production";
   try {
-    const tag = execSync("git describe --tags --abbrev=0").toString().trim();
-    const commitTime = execSync('git log -1 --format=%cd --date=format:"%d.%m.%Y %H:%M"').toString().trim();
-    return `${tag} (${commitTime})`;
+    if (isDev) {
+      const commitTime = execSync('git log -1 --format=%cd --date=format:"%d.%m.%Y %H:%M"').toString().trim();
+      return `dev: ${commitTime}`;
+    } else {
+      return execSync("git describe --tags --abbrev=0").toString().trim();
+    }
   } catch (error) {
     try {
       const pkgPath = path.resolve(process.cwd(), "package.json");
