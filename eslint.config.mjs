@@ -7,8 +7,12 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig([{
-    extends: [...nextCoreWebVitals, ...nextTypescript],
+export default defineConfig([
+    {
+        ignores: [".tmp/**/*", ".tmp/*", "node_modules/**/*", ".next/**/*"],
+    },
+    {
+        extends: [...nextCoreWebVitals, ...nextTypescript],
 
     rules: {
         "@typescript-eslint/no-unused-vars": "off",

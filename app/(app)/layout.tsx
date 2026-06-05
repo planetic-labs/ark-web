@@ -18,6 +18,9 @@ import {
   Bot,
   Key,
   LogOut,
+  Search,
+  User,
+  GraduationCap,
 } from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -48,11 +51,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Navigation Items
   const navItems = [
-    { label: 'Чаты', href: ROUTES.chats, icon: MessageSquare },
+    { label: 'Профиль', href: ROUTES.profile, icon: User },
+    { label: 'Мессенджер', href: ROUTES.chats, icon: MessageSquare },
     { label: 'Навигатор', href: ROUTES.navigator, icon: Compass },
     { label: 'Видео', href: ROUTES.video, icon: Play },
     { label: 'Материалы', href: ROUTES.materials, icon: FileText },
     { label: 'Летописи', href: ROUTES.chronicles, icon: History },
+    { label: 'Ученики', href: ROUTES.students, icon: GraduationCap },
   ];
 
   // Admin Items
@@ -78,29 +83,67 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-canvas overflow-hidden">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-bg-warm border-r border-line flex flex-col flex-shrink-0 select-none">
-        {/* Header */}
-        <div className="p-6 border-b border-line flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D0C6B0] to-[#AFA690] text-[#5F5848] font-display font-bold flex items-center justify-center">
-            К
+    <div className="flex flex-col h-screen bg-canvas overflow-hidden font-body text-ink">
+      {/* Top Header (VK style, in Ark branding) */}
+      <header className="h-12 w-full bg-bg border-b border-line flex items-center select-none flex-shrink-0 z-40">
+        <div className="max-w-5xl w-full mx-auto px-4 flex items-center justify-between">
+          {/* Logo and Search bar */}
+          <div className="flex items-center gap-6 flex-1 max-w-[500px]">
+            {/* Logo */}
+            <div
+              className="flex items-center gap-2.5 cursor-pointer"
+              onClick={() => router.push(ROUTES.chats)}
+            >
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#D0C6B0] to-[#AFA690] text-[#5F5848] font-display font-bold flex items-center justify-center text-sm shadow-sm select-none">
+                К
+              </div>
+              <h2 className="font-display font-bold text-sm text-ink tracking-tight select-none">
+                Ковчег
+              </h2>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-[240px] hidden md:block">
+              <Search className="w-3.5 h-3.5 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Поиск"
+                className="w-full bg-line-soft border border-line rounded-lg pl-8.5 pr-3 py-1 text-[11px] text-ink outline-none transition-all placeholder:text-ink-faint focus:border-amber focus:bg-bg"
+              />
+            </div>
           </div>
-          <div>
-            <h2 className="font-display font-semibold text-base text-ink leading-tight">
-              Ковчег
-            </h2>
-            <p className="font-mono text-[9px] text-ink-faint tracking-wider uppercase">
-              Web Version
-            </p>
+
+          {/* User Profile Info and Logout */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2.5">
+              <span className="font-display font-bold text-xs text-ink truncate max-w-[120px] hidden sm:inline-block">
+                {user.full_name || 'Пользователь'}
+              </span>
+              {isWarrior && <WarriorBadge />}
+              <Avatar
+                name={user.full_name || user.email}
+                avatarUrl={user.avatar_url}
+                isWarrior={isWarrior}
+                isMe={true}
+                size="sm"
+              />
+            </div>
+            <div className="w-px h-5 bg-line hidden sm:block"></div>
+            <button
+              onClick={() => logout()}
+              title="Выйти из системы"
+              className="p-1.5 rounded-lg hover:bg-line-soft text-ink-soft hover:text-amber transition-all cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Navigation List */}
-        <nav className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-1">
-          <span className="font-mono text-[9px] text-ink-faint tracking-wider uppercase px-3 mb-2 block">
-            Основное
-          </span>
+      {/* Main Container */}
+      <div className="max-w-5xl w-full mx-auto px-4 py-4 flex gap-5 flex-1 overflow-hidden items-stretch">
+        {/* Left Sidebar Menu */}
+        <aside className="w-[180px] flex-shrink-0 hidden md:flex flex-col gap-0.5 select-none overflow-y-auto pr-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
@@ -108,23 +151,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 key={item.href}
                 onClick={() => handleNavClick(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-body text-xs font-medium tracking-normal text-left transition-all duration-200 cursor-pointer ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg font-body text-xs font-medium text-left transition-all duration-150 cursor-pointer ${
                   active
-                    ? 'bg-ink text-white shadow-sm'
-                    : 'text-ink-soft hover:bg-line-soft hover:text-ink'
+                    ? 'bg-line-soft text-ink font-semibold'
+                    : 'text-ink-soft hover:bg-line-soft/60 hover:text-ink'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${active ? 'text-amber-bright' : 'text-ink-faint'}`} />
-                {item.label}
+                <Icon className={`w-3.5 h-3.5 ${active ? 'text-amber' : 'text-ink-faint'}`} />
+                <span>{item.label}</span>
               </button>
             );
           })}
 
-          {/* Admin Panel Sections */}
+          {/* Admin Section */}
           {isAdmin && (
-            <div className="mt-8 flex flex-col gap-1">
-              <span className="font-mono text-[9px] text-amber tracking-wider uppercase px-3 mb-2 block font-semibold">
-                Администрирование
+            <div className="mt-4 flex flex-col gap-0.5 border-t border-line-soft pt-3">
+              <span className="font-mono text-[9px] text-amber tracking-wider uppercase px-2.5 mb-1.5 block font-semibold">
+                Админ
               </span>
               {adminItems.map((item) => {
                 const Icon = item.icon;
@@ -133,57 +176,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <button
                     key={item.href}
                     onClick={() => handleNavClick(item.href)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-body text-xs font-medium text-left transition-all duration-200 cursor-pointer ${
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg font-body text-xs font-medium text-left transition-all duration-150 cursor-pointer ${
                       active
-                        ? 'bg-amber text-white shadow-sm'
-                        : 'text-ink-soft hover:bg-amber-wash/50 hover:text-amber'
+                        ? 'bg-amber-wash/80 text-amber font-semibold'
+                        : 'text-ink-soft hover:bg-line-soft/60 hover:text-ink'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-ink-faint'}`} />
-                    {item.label}
+                    <Icon className={`w-3.5 h-3.5 ${active ? 'text-amber' : 'text-ink-faint'}`} />
+                    <span>{item.label}</span>
                   </button>
                 );
               })}
             </div>
           )}
-        </nav>
+        </aside>
 
-        {/* Footer Profile & Logout */}
-        <div className="p-4 border-t border-line bg-bg flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <Avatar
-              name={user.full_name || user.email}
-              avatarUrl={user.avatar_url}
-              isWarrior={isWarrior}
-              isMe={true}
-              size="sm"
-            />
-            <div className="flex-1 min-width-0 leading-tight">
-              <div className="flex items-center gap-1">
-                <span className="font-display font-bold text-xs text-ink truncate max-w-[120px]">
-                  {user.full_name || 'Пользователь'}
-                </span>
-                {isWarrior && <WarriorBadge />}
-              </div>
-              <span className="font-mono text-[9px] text-ink-soft block uppercase tracking-wider">
-                {user.role}
-              </span>
-            </div>
-            <button
-              onClick={() => logout()}
-              title="Выйти из системы"
-              className="p-2 rounded-lg hover:bg-line-soft text-ink-soft hover:text-amber transition-all cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-bg relative">
-        {children}
-      </main>
+        {/* Main Content Pane */}
+        <main className="flex-1 min-w-0 h-full overflow-y-auto relative">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

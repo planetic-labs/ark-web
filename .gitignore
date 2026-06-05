@@ -41,3 +41,4 @@ next-env.d.ts
 
 # local configuration & instructions
 GEMINI.md
+.tmp/

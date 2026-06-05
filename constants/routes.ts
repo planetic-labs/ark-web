@@ -17,4 +17,6 @@ export const ROUTES = {
   chronicles: '/chronicles',
   materials: '/materials',
   video: '/video',
+  profile: '/profile',
+  students: '/students',
 } as const;

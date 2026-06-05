@@ -7,7 +7,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import Avatar from '@/components/ui/Avatar';
 import { WarriorBadge } from '@/components/ui/WarriorBadge';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, CornerUpLeft, Check, ThumbsUp, Heart, Smile, X, Users, MessageSquare } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
+import { Send, CornerUpLeft, Check, ThumbsUp, Heart, Smile, X, Users, MessageSquare, Paperclip, Mic } from 'lucide-react';
 
 interface MockReport {
   author_name: string;
@@ -24,6 +25,7 @@ export default function ChatWindowPage() {
   const chatId = params.chatId as string;
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const router = useRouter();
   
   const [inputText, setInputText] = useState('');
   const [replyParent, setReplyParent] = useState<any | null>(null);
@@ -216,26 +218,45 @@ export default function ChatWindowPage() {
   const isWarriorChat = currentChat.name === 'Инкубатор' || currentChat.name === 'Реанимация.Интенсив';
 
   return (
-    <div className="h-full flex flex-col bg-bg-warm">
+    <div className="h-full flex flex-col bg-bg-warm rounded-xl border border-line shadow-sm overflow-hidden">
       {/* Chat header */}
-      <div className="bg-bg border-b border-line px-6 py-4 flex items-center justify-between select-none">
-        <div>
-          <h2 className="font-display font-semibold text-base text-ink leading-tight">
-            {currentChat.name}
-          </h2>
-          <p className="font-mono text-[10px] text-ink-soft mt-0.5 flex items-center gap-1.5">
-            <span>32 участника</span>
-            <span className="text-ink-faint font-light">·</span>
-            <span className="text-amber font-semibold">◈ 3 Воина</span>
-          </p>
+      <div className="bg-bg border-b border-line px-4 py-3 flex items-center justify-between select-none">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Back button (X) */}
+          <button 
+            onClick={() => router.push(ROUTES.chats)}
+            className="p-1.5 rounded-lg hover:bg-line-soft text-ink-soft hover:text-ink cursor-pointer flex-shrink-0"
+            title="Назад к списку чатов"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Chat Avatar */}
+          <Avatar
+            name={currentChat.name || 'Чат'}
+            isWarrior={isWarriorChat}
+            size="sm"
+          />
+
+          {/* Chat Title & Info */}
+          <div className="min-w-0">
+            <h2 className="font-display font-semibold text-xs text-ink leading-tight truncate flex items-center gap-1">
+              {currentChat.name}
+            </h2>
+            <p className="font-mono text-[9px] text-ink-soft mt-0.5 flex items-center gap-1.5 truncate">
+              <span>32 участника</span>
+              <span className="text-ink-faint font-light">·</span>
+              <span className="text-amber font-semibold">◈ 3 Воина</span>
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <button className="p-2 rounded-xl hover:bg-line-soft text-ink-soft hover:text-ink cursor-pointer">
-            <Users className="w-4.5 h-4.5" />
+            <Users className="w-4 h-4" />
           </button>
           <button className="p-2 rounded-xl hover:bg-line-soft text-ink-soft hover:text-ink cursor-pointer">
-            <MessageSquare className="w-4.5 h-4.5" />
+            <MessageSquare className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -339,39 +360,52 @@ export default function ChatWindowPage() {
           
           // Check if this message is a thread reply
           const isReply = !!m.parent_id;
+          const isMe = m.sender_id === user?.id;
 
           return (
             <div
               key={m.id}
-              className={`flex gap-3 max-w-[85%] self-start ${isReply ? 'ml-12 border-l-2 border-amber pl-4' : ''}`}
+              className={`flex gap-3 max-w-[85%] ${
+                isMe ? 'self-end flex-row-reverse' : 'self-start'
+              } ${isReply ? 'ml-12 border-l-2 border-amber pl-4' : ''}`}
             >
-              <Avatar
-                name={senderName}
-                avatarUrl={m.sender?.avatar_url}
-                isWarrior={isWarriorSender}
-                size="sm"
-              />
+              {!isMe && (
+                <Avatar
+                  name={senderName}
+                  avatarUrl={m.sender?.avatar_url}
+                  isWarrior={isWarriorSender}
+                  size="sm"
+                />
+              )}
               <div className="flex flex-col gap-1">
                 {/* Bubble wrapper */}
                 <div
-                  className={`rounded-2xl px-4 py-3 border shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${
-                    isWarriorSender
+                  className={`rounded-2xl px-4 py-2.5 border shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${
+                    isMe
+                      ? 'bg-warrior-bg border-amber/15 rounded-tr-none'
+                      : isWarriorSender
                       ? 'bg-warrior-bg border-[#F0DFB8]'
-                      : 'bg-bg border-line'
+                      : 'bg-bg border-line rounded-tl-none'
                   }`}
                 >
-                  <div className="flex items-baseline gap-2 mb-1 select-none">
+                  <div className="flex items-baseline justify-between gap-6 mb-1 select-none">
                     <span
-                      className={`font-display font-bold text-xs ${
-                        isWarriorSender ? 'text-amber flex items-center gap-0.5' : 'text-ink font-semibold'
+                      className={`font-display font-bold text-[11px] ${
+                        isMe
+                          ? 'text-amber-bright'
+                          : isWarriorSender
+                          ? 'text-amber flex items-center gap-0.5'
+                          : 'text-ink font-semibold'
                       }`}
                     >
-                      {isWarriorSender && '◈ '}
-                      {senderName}
+                      {isMe ? 'Вы' : (isWarriorSender ? '◈ ' + senderName : senderName)}
                     </span>
-                    <span className="font-mono text-[9px] text-ink-faint">
-                      {new Date(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-mono text-[9px] text-ink-faint">
+                        {new Date(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {isMe && <Check className="w-3 h-3 text-amber-bright" />}
+                    </div>
                   </div>
 
                   <p className="text-xs text-ink leading-relaxed font-body select-text">
@@ -380,15 +414,17 @@ export default function ChatWindowPage() {
                 </div>
 
                 {/* Actions: reply trigger */}
-                <div className="flex items-center gap-3 px-1 select-none">
+                <div className={`flex items-center gap-3 px-1 select-none ${isMe ? 'justify-end' : ''}`}>
                   <button
                     onClick={() => setReplyParent(m)}
                     className="flex items-center gap-1 text-[10px] font-semibold text-ink-soft hover:text-amber transition-all cursor-pointer"
                   >
                     <CornerUpLeft className="w-3 h-3" />
-                    Ответить (Тред)
+                    Ответить
                   </button>
-                  <span className="text-[9px] text-amber-bright font-semibold">◈ Читают Воины</span>
+                  {isWarriorSender && !isMe && (
+                    <span className="text-[9px] text-amber-bright font-semibold">◈ Читают Воины</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -398,7 +434,7 @@ export default function ChatWindowPage() {
       </div>
 
       {/* Message Composer */}
-      <div className="bg-bg border-t border-line p-4 flex flex-col gap-3">
+      <div className="bg-bg border-t border-line p-3 flex flex-col gap-2">
         {/* Reply Preview Banner */}
         {replyParent && (
           <div className="flex items-center justify-between gap-4 bg-bg-warm border border-line rounded-xl px-3 py-2 animate-in slide-in-from-bottom-2 duration-150 select-none">
@@ -421,22 +457,54 @@ export default function ChatWindowPage() {
           </div>
         )}
 
-        <form onSubmit={handleSend} className="flex items-center gap-3">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            disabled={sendMessageMutation.isPending}
-            placeholder={replyParent ? "Написать ответ в тред..." : "Написать сообщение..."}
-            className="flex-1 bg-bg-warm border border-line rounded-2xl px-4 py-3.5 text-xs text-ink outline-none transition-all placeholder:text-ink-faint focus:border-amber select-text"
-          />
+        <form onSubmit={handleSend} className="flex items-center gap-2">
+          {/* Paperclip attach button */}
           <button
-            type="submit"
-            disabled={!inputText.trim() || sendMessageMutation.isPending}
-            className="w-11 h-11 rounded-full bg-amber hover:bg-amber-bright disabled:opacity-50 text-white flex items-center justify-center cursor-pointer transition-all active:scale-95 flex-shrink-0"
+            type="button"
+            title="Прикрепить файл"
+            className="p-2 rounded-full hover:bg-line-soft text-ink-soft hover:text-ink transition-all cursor-pointer flex-shrink-0"
           >
-            <Send className="w-4.5 h-4.5" />
+            <Paperclip className="w-4.5 h-4.5" />
           </button>
+
+          {/* Input field wrapper */}
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              disabled={sendMessageMutation.isPending}
+              placeholder={replyParent ? "Написать ответ в тред..." : "Написать сообщение..."}
+              className="w-full bg-line-soft border border-line rounded-xl pl-4 pr-10 py-2.5 text-xs text-ink outline-none transition-all placeholder:text-ink-faint focus:border-amber focus:bg-bg select-text"
+            />
+            {/* Smile picker button inside input */}
+            <button
+              type="button"
+              title="Смайлы"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-line-soft/50 text-ink-faint hover:text-ink transition-all cursor-pointer"
+            >
+              <Smile className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Dynamic Action button: Send or Voice recording */}
+          {inputText.trim() ? (
+            <button
+              type="submit"
+              disabled={sendMessageMutation.isPending}
+              className="w-9 h-9 rounded-full bg-amber hover:bg-amber-bright text-white flex items-center justify-center transition-all active:scale-95 flex-shrink-0 shadow-sm cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              title="Записать голосовое сообщение"
+              className="p-2.5 rounded-full hover:bg-line-soft text-ink-soft hover:text-ink transition-all cursor-pointer flex-shrink-0"
+            >
+              <Mic className="w-4.5 h-4.5" />
+            </button>
+          )}
         </form>
       </div>
     </div>
