@@ -146,6 +146,33 @@ def push_tag(version: str, dry_run: bool) -> None:
         print(f"Successfully pushed tag {version} to origin.")
 
 
+def create_github_release(version: str, changelog: str, dry_run: bool) -> None:
+    """Creates a GitHub release using GitHub CLI (gh)."""
+    print(f"Creating GitHub release for {version}...")
+    if dry_run:
+        print(f"[DRY-RUN] gh release create {version} --title 'Release {version}' --notes '...'")
+        return
+        
+    try:
+        # Check if gh CLI is installed and authenticated
+        subprocess.run(["gh", "--version"], capture_output=True, check=True)
+        
+        # Run gh release create command
+        result = subprocess.run(
+            ["gh", "release", "create", version, "--title", f"Release {version}", "--notes", changelog],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            print(f"Successfully created GitHub release for {version}.")
+        else:
+            print(f"Warning: Failed to create GitHub release via gh CLI: {result.stderr.strip()}", file=sys.stderr)
+            print("You can create it manually on GitHub website.", file=sys.stderr)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("Warning: GitHub CLI (gh) is not installed or not authenticated.", file=sys.stderr)
+        print("GitHub release was not created. You can create it manually.", file=sys.stderr)
+
+
 def parse_arguments() -> argparse.Namespace:
     """Parses command line arguments."""
     parser = argparse.ArgumentParser(description="Create a calendar versioned (CalVer) release.")
@@ -178,11 +205,13 @@ def main():
         
     if args.push:
         push_tag(next_version, args.dry_run)
+        create_github_release(next_version, changelog, args.dry_run)
     elif not args.no_input:
         try:
-            user_input = input(f"Do you want to push tag '{next_version}' to origin? [y/N]: ").strip().lower()
+            user_input = input(f"Do you want to push tag '{next_version}' and create GitHub Release? [y/N]: ").strip().lower()
             if user_input in ("y", "yes"):
                 push_tag(next_version, args.dry_run)
+                create_github_release(next_version, changelog, args.dry_run)
             else:
                 print(f"Tag was not pushed. You can push it manually: git push origin {next_version}")
         except KeyboardInterrupt:
