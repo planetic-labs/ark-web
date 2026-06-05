@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   env: {
-    NEXT_PUBLIC_APP_VERSION: getGitVersion(),
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || getGitVersion(),
   },
 };
 

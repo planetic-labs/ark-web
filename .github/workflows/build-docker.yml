@@ -43,6 +43,8 @@ jobs:
           file: Dockerfile
           push: true
           provenance: false
+          build-args: |
+            APP_VERSION=${{ steps.get_tag.outputs.tag }}
           tags: |
             ghcr.io/${{ steps.get_tag.outputs.owner }}/ark-web:${{ steps.get_tag.outputs.tag }}
             ghcr.io/${{ steps.get_tag.outputs.owner }}/ark-web:latest

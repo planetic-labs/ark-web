@@ -18,6 +18,8 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 
 # Build the Next.js app
+ARG APP_VERSION
+ENV NEXT_PUBLIC_APP_VERSION=$APP_VERSION
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
