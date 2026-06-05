@@ -189,6 +189,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               })}
             </div>
           )}
+
+          {/* Release Version Footer */}
+          <div className="mt-auto pt-3 border-t border-line-soft px-2.5">
+            <span className="font-mono text-[9px] text-ink-faint select-none">
+              Релиз: <strong className="text-ink-soft font-semibold">{process.env.NEXT_PUBLIC_APP_VERSION || 'v0.1.0'}</strong>
+            </span>
+          </div>
         </aside>
 
         {/* Main Content Pane */}
