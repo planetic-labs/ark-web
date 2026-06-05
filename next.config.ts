@@ -5,7 +5,9 @@ import path from "path";
 
 const getGitVersion = (): string => {
   try {
-    return execSync("git describe --tags --always").toString().trim();
+    const tag = execSync("git describe --tags --abbrev=0").toString().trim();
+    const commitTime = execSync('git log -1 --format=%cd --date=format:"%d.%m.%Y %H:%M"').toString().trim();
+    return `${tag} (${commitTime})`;
   } catch (error) {
     try {
       const pkgPath = path.resolve(process.cwd(), "package.json");
