@@ -5,6 +5,7 @@ import { useSession } from '@/hooks/useSession';
 import { useRouter, usePathname } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import Avatar from '@/components/ui/Avatar';
 import { WarriorBadge } from '@/components/ui/WarriorBadge';
 import {
@@ -28,6 +29,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  useWebSocket();
 
   // If loading session, show premium spinner page
   if (isLoading) {
