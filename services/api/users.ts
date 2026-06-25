@@ -70,24 +70,24 @@ export const usersApi = {
 
   // Service Clients
   listServices: async (): Promise<ServiceClient[]> => {
-    return apiRequest<ServiceClient[]>('/users/services/list');
+    return apiRequest<ServiceClient[]>('/services/list');
   },
 
   createService: async (name: string, scopes: string[], allowedOrigins?: string[]): Promise<ServiceClientCreateResponse> => {
-    return apiRequest<ServiceClientCreateResponse>('/users/services/create', {
+    return apiRequest<ServiceClientCreateResponse>('/services/create', {
       method: 'POST',
       body: JSON.stringify({ name, scopes, allowed_origins: allowedOrigins }),
     });
   },
 
   revokeService: async (id: string): Promise<ServiceClient> => {
-    return apiRequest<ServiceClient>(`/users/services/${id}/revoke`, {
+    return apiRequest<ServiceClient>(`/services/${id}/revoke`, {
       method: 'POST',
     });
   },
 
   activateService: async (id: string): Promise<ServiceClient> => {
-    return apiRequest<ServiceClient>(`/users/services/${id}/activate`, {
+    return apiRequest<ServiceClient>(`/services/${id}/activate`, {
       method: 'POST',
     });
   },

@@ -16,30 +16,30 @@ export interface Role {
 
 export const rolesApi = {
   list: async (): Promise<Role[]> => {
-    return apiRequest<Role[]>('/users/roles/list');
+    return apiRequest<Role[]>('/roles/list');
   },
 
   create: async (name: string, permissions: string[]): Promise<Role> => {
-    return apiRequest<Role>('/users/roles/create', {
+    return apiRequest<Role>('/roles/create', {
       method: 'POST',
       body: JSON.stringify({ name, permissions }),
     });
   },
 
   update: async (id: string, name: string, permissions: string[]): Promise<Role> => {
-    return apiRequest<Role>(`/users/roles/${id}`, {
+    return apiRequest<Role>(`/roles/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ name, permissions }),
     });
   },
 
   makeDefault: async (id: string): Promise<Role> => {
-    return apiRequest<Role>(`/users/roles/${id}/default`, {
+    return apiRequest<Role>(`/roles/${id}/default`, {
       method: 'POST',
     });
   },
 
   listPermissions: async (): Promise<Permission[]> => {
-    return apiRequest<Permission[]>('/users/permissions/list');
+    return apiRequest<Permission[]>('/permissions/list');
   },
 };

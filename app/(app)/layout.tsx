@@ -54,13 +54,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Navigation Items
   const navItems = [
-    { label: 'Профиль', href: ROUTES.profile, icon: User },
-    { label: 'Мессенджер', href: ROUTES.chats, icon: MessageSquare },
     { label: 'Навигатор', href: ROUTES.navigator, icon: Compass },
-    { label: 'Видео', href: ROUTES.video, icon: Play },
-    { label: 'Материалы', href: ROUTES.materials, icon: FileText },
-    { label: 'Летописи', href: ROUTES.chronicles, icon: History },
+    { label: 'Мессенджер', href: ROUTES.chats, icon: MessageSquare },
     { label: 'Ученики', href: ROUTES.students, icon: GraduationCap },
+    { label: 'Профиль', href: ROUTES.profile, icon: User },
   ];
 
   // Admin Items
@@ -119,7 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {/* User Profile Info and Logout */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5">
-              <span className="font-display font-bold text-xs text-ink truncate max-w-[120px] hidden sm:inline-block">
+              <span className="font-display font-bold text-xs text-ink whitespace-nowrap hidden sm:inline-block">
                 {user.full_name || 'Пользователь'}
               </span>
               {isWarrior && <WarriorBadge />}

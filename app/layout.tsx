@@ -29,17 +29,37 @@ export const metadata: Metadata = {
   description: "Корпоративный мессенджер для закрытого сообщества Ковчег",
 };
 
+const getRuntimeWsUrl = (): string => {
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+  if (wsUrl) return wsUrl;
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  if (apiUrl.startsWith("http")) {
+    return apiUrl
+      .replace("http://", "ws://")
+      .replace("https://", "wss://")
+      .replace("/api/v1", "");
+  }
+  return "";
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const wsUrl = getRuntimeWsUrl();
   return (
     <html lang="ru">
       <head>
         {/* Preconnect to external resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__WS_URL__ = ${JSON.stringify(wsUrl)};`,
+          }}
+        />
       </head>
       <body
         className={`${spectral.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} font-body antialiased`}

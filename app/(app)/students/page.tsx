@@ -1,121 +1,70 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { usersApi } from '@/services/api/users';
+import { chatsApi } from '@/services/api/chats';
+import { useSession } from '@/hooks/useSession';
 import Avatar from '@/components/ui/Avatar';
-import { Search, GraduationCap, Award, FileText, CheckCircle2, ChevronRight, Filter } from 'lucide-react';
-
-interface MockStudent {
-  id: string;
-  name: string;
-  isWarrior: boolean;
-  email: string;
-  status: 'active' | 'need_review' | 'no_reports';
-  lastReportDate: string;
-  practiceHours: string;
-  lastPracticeName: string;
-}
+import { WarriorBadge } from '@/components/ui/WarriorBadge';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/constants/routes';
+import { Search, MessageSquare, GraduationCap, Users } from 'lucide-react';
 
 export default function StudentsPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'need_review' | 'active'>('all');
 
-  const mockStudents: MockStudent[] = [
-    {
-      id: '1',
-      name: 'Елена Сорокина',
-      isWarrior: false,
-      email: 'sorokina.elena@mail.ru',
-      status: 'need_review',
-      lastReportDate: 'Сегодня в 09:12',
-      practiceHours: '12 часов',
-      lastPracticeName: 'Гудение (20м)',
-    },
-    {
-      id: '2',
-      name: 'Сергей Дьяконов',
-      isWarrior: false,
-      email: 'sergey.diakonov@gmail.com',
-      status: 'active',
-      lastReportDate: 'Вчера в 18:45',
-      practiceHours: '28 часов',
-      lastPracticeName: 'Присутствие в теле',
-    },
-    {
-      id: '3',
-      name: 'Мария Ланская',
-      isWarrior: false,
-      email: 'maria.lanskaya@yandex.ru',
-      status: 'active',
-      lastReportDate: '14 мая, 11:20',
-      practiceHours: '42 часа',
-      lastPracticeName: 'Тишина ума',
-    },
-    {
-      id: '4',
-      name: 'Галя Мурзина',
-      isWarrior: true,
-      email: 'galya.murz@gmail.com',
-      status: 'active',
-      lastReportDate: '14 мая, 10:48',
-      practiceHours: '84 часа',
-      lastPracticeName: 'Гудение Интенсив',
-    },
-    {
-      id: '5',
-      name: 'Алексей Прусиков',
-      isWarrior: true,
-      email: 'alexey.prusikov@outlook.com',
-      status: 'need_review',
-      lastReportDate: '13 мая, 15:30',
-      practiceHours: '96 часов',
-      lastPracticeName: 'Внимание как опора',
-    },
-  ];
+  // Fetch all users
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: usersApi.list,
+  });
 
-  const filteredStudents = mockStudents.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          student.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (selectedFilter === 'all') return matchesSearch;
-    return matchesSearch && student.status === selectedFilter;
+  // Start chat mutation
+  const startChatMutation = useMutation({
+    mutationFn: async (targetUserId: string) => {
+      return chatsApi.create({
+        is_group: false,
+        member_ids: [targetUserId],
+      });
+    },
+    onSuccess: (newChat) => {
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      router.push(ROUTES.chat(newChat.id));
+    },
+  });
+
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      ADMIN: 'Администратор',
+      MASTER: 'Мастер',
+      WARRIOR: 'Воин',
+      STUDENT: 'Ученик',
+    };
+    return labels[role] || role;
+  };
+
+  const filteredUsers = users.filter((u) => {
+    const nameMatch = (u.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      (u.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+    return nameMatch;
   });
 
   return (
-    <div className="flex flex-col gap-5 max-w-[900px] select-none p-1">
-      {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bg border border-line rounded-2xl p-4 shadow-sm">
+    <div className="flex flex-col gap-5 max-w-[800px] select-none p-1 mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bg border border-line rounded-2xl p-5 shadow-sm">
         <div>
-          <h1 className="font-display font-bold text-lg text-ink flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-amber" />
-            <span>Ученики закрытого сообщества</span>
+          <h1 className="font-display font-bold text-xl text-ink flex items-center gap-2">
+            <GraduationCap className="w-5.5 h-5.5 text-amber" />
+            <span>Ученики</span>
           </h1>
           <p className="text-[11px] text-ink-soft mt-1">
-            Мониторинг отчетов, практики учеников и назначение корректировок воинами.
+            Список участников закрытого сообщества. Вы можете начать личное общение с любым из них.
           </p>
-        </div>
-
-        {/* Filter buttons */}
-        <div className="flex gap-1.5 flex-wrap">
-          <button
-            onClick={() => setSelectedFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
-              selectedFilter === 'all'
-                ? 'bg-ink text-white shadow-sm'
-                : 'bg-line-soft text-ink-soft hover:bg-line-soft/80'
-            }`}
-          >
-            Все ({mockStudents.length})
-          </button>
-          <button
-            onClick={() => setSelectedFilter('need_review')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
-              selectedFilter === 'need_review'
-                ? 'bg-amber text-white shadow-sm'
-                : 'bg-line-soft text-ink-soft hover:bg-line-soft/80'
-            }`}
-          >
-            Нужна корректировка
-          </button>
         </div>
       </div>
 
@@ -131,63 +80,81 @@ export default function StudentsPage() {
         />
       </div>
 
-      {/* Students List Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredStudents.length === 0 ? (
-          <div className="col-span-full py-16 text-center text-ink-soft bg-bg border border-line rounded-2xl">
-            Никто не найден по вашему запросу.
-          </div>
-        ) : (
-          filteredStudents.map((student) => (
-            <div
-              key={student.id}
-              className="bg-bg border border-line hover:border-amber/30 rounded-2xl p-4 shadow-sm flex items-start gap-4 transition-all duration-200 group cursor-pointer hover:shadow-md"
-            >
-              <Avatar name={student.name} isWarrior={student.isWarrior} size="md" />
+      {/* Users list */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-amber border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : filteredUsers.length === 0 ? (
+        <div className="bg-bg border border-line rounded-2xl p-12 text-center">
+          <Users className="w-12 h-12 text-ink-faint mx-auto mb-3" />
+          <h3 className="font-display font-semibold text-base text-ink">Ученики не найдены</h3>
+          <p className="font-body text-xs text-ink-soft mt-1">Попробуйте изменить поисковый запрос</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {filteredUsers.map((u) => {
+            const isWarrior = u.role === 'WARRIOR' || u.role === 'MASTER' || u.role === 'ADMIN';
+            const isSelf = currentUser?.id === u.id;
+            const isPending = startChatMutation.isPending && startChatMutation.variables === u.id;
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 justify-between">
-                  <h3 className="font-display font-semibold text-xs text-ink leading-tight truncate group-hover:text-amber transition-colors">
-                    {student.name}
-                  </h3>
-                  {student.status === 'need_review' && (
-                    <span className="bg-amber-wash border border-amber/15 text-amber text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 animate-pulse">
-                      Требует корректировки
+            return (
+              <div
+                key={u.id}
+                className="bg-bg border border-line hover:border-amber/30 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-4 transition-all duration-200"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <Avatar
+                    name={u.full_name || u.email}
+                    avatarUrl={u.avatar_url}
+                    isWarrior={isWarrior}
+                    size="md"
+                  />
+                  <div className="leading-tight min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink font-display text-sm truncate">
+                        {u.full_name || 'Без имени'}
+                      </span>
+                      {isWarrior && <WarriorBadge />}
+                      {isSelf && (
+                        <span className="bg-line-soft text-ink-soft text-[9px] font-semibold px-1.5 py-0.5 rounded-md">
+                          Вы
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[9px] text-ink-faint block mt-0.5 truncate">
+                      {u.email}
                     </span>
-                  )}
-                </div>
-                
-                <p className="font-mono text-[9px] text-ink-faint mt-0.5 truncate">{student.email}</p>
-
-                {/* Report stats */}
-                <div className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-line-soft select-none">
-                  <div className="flex items-center justify-between text-[10px] text-ink-soft">
-                    <span className="flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-ink-faint" />
-                      <span>Последний отчет:</span>
+                    <span className="text-[10px] text-amber font-semibold mt-1 block">
+                      {getRoleLabel(u.role)}
                     </span>
-                    <strong className="text-ink font-semibold">{student.lastReportDate}</strong>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-ink-soft">
-                    <span className="flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-ink-faint" />
-                      <span>Общее время практик:</span>
-                    </span>
-                    <strong className="text-ink font-semibold text-amber">{student.practiceHours}</strong>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-ink-soft">
-                    <span className="flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-ink-faint" />
-                      <span>Последняя практика:</span>
-                    </span>
-                    <span className="text-ink truncate max-w-[120px] font-medium">{student.lastPracticeName}</span>
                   </div>
                 </div>
+
+                {/* Start Conversation Button */}
+                {!isSelf && (
+                  <button
+                    disabled={startChatMutation.isPending}
+                    onClick={() => startChatMutation.mutate(u.id)}
+                    title="Начать персональное общение"
+                    className={`flex items-center justify-center w-9 h-9 rounded-xl border transition-all cursor-pointer ${
+                      isPending
+                        ? 'bg-amber-wash border-amber/20 text-amber'
+                        : 'bg-bg hover:bg-amber-wash hover:border-amber/40 border-line text-ink-soft hover:text-amber hover:shadow-sm active:scale-95'
+                    }`}
+                  >
+                    {isPending ? (
+                      <div className="w-3.5 h-3.5 border-2 border-amber border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <MessageSquare className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

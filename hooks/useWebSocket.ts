@@ -10,20 +10,41 @@ function nextBackoffDelay(attempt: number): number {
 }
 
 function buildWsUrl(token: string): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  if (!apiUrl.startsWith('http')) {
-    if (typeof window !== 'undefined') {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      return `${protocol}//${host}/ws?token=${token}`;
-    }
-    return `ws://localhost:8000/ws?token=${token}`;
+  // 1. If runtime WS URL was injected by the server
+  if (typeof window !== 'undefined' && (window as any).__WS_URL__) {
+    const base = (window as any).__WS_URL__;
+    return `${base}/ws?token=${token}`;
   }
-  const base = apiUrl
-    .replace('http://', 'ws://')
-    .replace('https://', 'wss://')
-    .replace('/api/v1', '');
-  return `${base}/ws?token=${token}`;
+
+  // 2. If client environment variable is defined
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+  if (wsUrl) {
+    return `${wsUrl}/ws?token=${token}`;
+  }
+
+  // 3. If absolute API URL is defined
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  if (apiUrl.startsWith('http')) {
+    const base = apiUrl
+      .replace('http://', 'ws://')
+      .replace('https://', 'wss://')
+      .replace('/api/v1', '');
+    return `${base}/ws?token=${token}`;
+  }
+
+  // 4. Local fallback
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let host = window.location.host;
+    
+    // If running on a non-standard port (e.g., Next.js dev server on port 3000), redirect to API port 8000
+    if (window.location.port && window.location.port !== '80' && window.location.port !== '443') {
+      host = `${window.location.hostname}:8000`;
+    }
+    return `${protocol}//${host}/ws?token=${token}`;
+  }
+
+  return `ws://localhost:8000/ws?token=${token}`;
 }
 
 export function useWebSocket() {
