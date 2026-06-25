@@ -9,7 +9,7 @@ ENV CI=true
 RUN npm i -g pnpm@latest
 
 # Copy package management files
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile --ignore-scripts
