@@ -2,6 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/useAuthStore';
 
+declare global {
+  interface Window {
+    __WS_URL__?: string;
+  }
+}
+
 const BACKOFF_INITIAL_MS = 1_000;
 const BACKOFF_MAX_MS = 30_000;
 
@@ -11,8 +17,8 @@ function nextBackoffDelay(attempt: number): number {
 
 function buildWsUrl(token: string): string {
   // 1. If runtime WS URL was injected by the server
-  if (typeof window !== 'undefined' && (window as any).__WS_URL__) {
-    const base = (window as any).__WS_URL__;
+  if (typeof window !== 'undefined' && window.__WS_URL__) {
+    const base = window.__WS_URL__;
     return `${base}/ws?token=${token}`;
   }
 

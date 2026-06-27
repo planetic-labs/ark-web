@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getBackendUrl } from '@/services/api/config';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    // CSRF Check
+    const origin = request.headers.get('origin');
+    if (origin) {
+      const originUrl = new URL(origin);
+      const requestUrl = new URL(request.url);
+      if (originUrl.host !== requestUrl.host) {
+        return NextResponse.json({ detail: 'CSRF Protection: Invalid origin' }, { status: 403 });
+      }
+    }
+
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get('refresh_token')?.value;
 
@@ -10,23 +21,6 @@ export async function POST() {
       return NextResponse.json({ error: 'No refresh token' }, { status: 401 });
     }
 
-    const getBackendUrl = () => {
-      let url = process.env.INTERNAL_API_URL;
-      if (!url) {
-        if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith('http')) {
-          url = process.env.NEXT_PUBLIC_API_URL;
-        } else if (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.startsWith('http')) {
-          url = process.env.EXPO_PUBLIC_API_URL;
-        }
-      }
-      if (url) {
-        if (!url.endsWith('/api/v1')) {
-          url = url.replace(/\/+$/, '') + '/api/v1';
-        }
-        return url;
-      }
-      return 'http://127.0.0.1:8000/api/v1';
-    };
     const backendUrl = getBackendUrl();
     const response = await fetch(`${backendUrl}/auth/refresh`, {
       method: 'POST',
@@ -44,10 +38,13 @@ export async function POST() {
 
     const data = await response.json(); // returns new access_token & refresh_token
 
-    const res = NextResponse.json(data);
+    // Extract refresh_token so it doesn't leak to client JS
+    const { refresh_token, ...clientData } = data;
 
-    if (data.refresh_token) {
-      res.cookies.set('refresh_token', data.refresh_token, {
+    const res = NextResponse.json(clientData);
+
+    if (refresh_token) {
+      res.cookies.set('refresh_token', refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -67,7 +64,8 @@ export async function POST() {
     }
 
     return res;
-  } catch (error: any) {
-    return NextResponse.json({ detail: error.message || 'Internal Server Error' }, { status: 500 });
+  } catch (error: unknown) {
+    const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : (error instanceof Error ? error.message : 'Internal Server Error');
+    return NextResponse.json({ detail: message }, { status: 500 });
   }
 }

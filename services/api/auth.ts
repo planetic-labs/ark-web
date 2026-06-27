@@ -1,4 +1,5 @@
 import { apiRequest } from './client';
+import { User } from '@/types/shared';
 
 export interface IdentifyResponse {
   next: 'enter_code' | 'enter_password' | 'setup_profile';
@@ -9,8 +10,13 @@ export interface VerifyCodeResponse {
   access_token?: string;
   refresh_token?: string;
   setup_token?: string;
-  user?: any;
+  user?: User;
   next: 'setup_profile' | 'approved' | 'pending_approval' | 'home';
+}
+
+export interface SetupResponse {
+  access_token?: string;
+  user?: User;
 }
 
 export const authApi = {
@@ -28,22 +34,22 @@ export const authApi = {
     });
   },
 
-  setup: async (setupToken: string, firstName: string, lastName: string, avatarUrl?: string): Promise<any> => {
-    return apiRequest<any>('/auth/setup', {
+  setup: async (setupToken: string, firstName: string, lastName: string, avatarUrl?: string): Promise<SetupResponse> => {
+    return apiRequest<SetupResponse>('/auth/setup', {
       method: 'POST',
       body: JSON.stringify({ setup_token: setupToken, first_name: firstName, last_name: lastName, avatar_url: avatarUrl }),
     });
   },
 
-  refresh: async (refreshToken: string): Promise<any> => {
-    return apiRequest<any>('/auth/refresh', {
+  refresh: async (refreshToken: string): Promise<unknown> => {
+    return apiRequest<unknown>('/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
   },
 
-  logout: async (): Promise<any> => {
-    return apiRequest<any>('/auth/logout', {
+  logout: async (): Promise<unknown> => {
+    return apiRequest<unknown>('/auth/logout', {
       method: 'POST',
     });
   },

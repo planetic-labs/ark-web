@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '@/services/api/users';
+import { User } from '@/types/shared';
 import Avatar from '@/components/ui/Avatar';
 import { WarriorBadge } from '@/components/ui/WarriorBadge';
 import { useRouter } from 'next/navigation';
@@ -45,7 +46,7 @@ export default function UsersAdminPage() {
       setNewIsApproved(true);
       setFormError('');
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setFormError(err.message || 'Ошибка создания участника');
     },
   });
@@ -79,7 +80,7 @@ export default function UsersAdminPage() {
     return nameMatch && statusMatch && roleMatch;
   });
 
-  const getStatusBadge = (user: any) => {
+  const getStatusBadge = (user: User) => {
     const status = user.is_active ? (user.is_approved ? 'active' : 'created') : 'disabled';
     
     const styles = {

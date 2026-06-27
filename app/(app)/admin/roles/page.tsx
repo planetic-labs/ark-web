@@ -53,7 +53,7 @@ export default function RolesAdminPage() {
       setNewRolePermissions([]);
       setTimeout(() => setSuccessMsg(''), 3000);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setErrorMsg(err.message || 'Ошибка при создании роли');
     },
   });
@@ -67,7 +67,7 @@ export default function RolesAdminPage() {
       setSuccessMsg(`Роль "${updatedRole.name}" успешно обновлена!`);
       setTimeout(() => setSuccessMsg(''), 3000);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setErrorMsg(err.message || 'Ошибка при обновлении роли');
     },
   });
@@ -80,7 +80,7 @@ export default function RolesAdminPage() {
       setSuccessMsg(`Роль "${updatedRole.name}" теперь выдается по умолчанию!`);
       setTimeout(() => setSuccessMsg(''), 3000);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setErrorMsg(err.message || 'Ошибка при смене роли по умолчанию');
     },
   });

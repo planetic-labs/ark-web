@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Message } from '@/types/shared';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatsApi } from '@/services/api/chats';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -28,7 +29,7 @@ export default function ChatWindowPage() {
   const router = useRouter();
   
   const [inputText, setInputText] = useState('');
-  const [replyParent, setReplyParent] = useState<any | null>(null);
+  const [replyParent, setReplyParent] = useState<Message | null>(null);
   
   // Custom mock reports state (stored locally in-memory for the demo since backend doesn't support structured reports DB tables yet)
   const [mockReports, setMockReports] = useState<Record<string, MockReport>>({

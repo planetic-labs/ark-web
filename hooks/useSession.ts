@@ -4,12 +4,15 @@ import { apiRequest } from '@/services/api/client';
 import { User } from '@/types/shared';
 
 export function useSession() {
-  const { accessToken, setAccessToken, user, setUser, logout } = useAuthStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const user = useAuthStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(true);
   const refreshAttemptedRef = useRef(false);
 
   useEffect(() => {
     async function initSession() {
+      const state = useAuthStore.getState();
+
       // 1. If we already have an accessToken and user, we are good
       if (accessToken && user) {
         setIsLoading(false);
@@ -20,10 +23,10 @@ export function useSession() {
       if (accessToken && !user) {
         try {
           const profile = await apiRequest<User>('/users/me', {}, accessToken);
-          setUser(profile);
+          state.setUser(profile);
           setIsLoading(false);
           return;
-        } catch (e) {
+        } catch {
           // Token might be invalid/expired, proceed to refresh
         }
       }
@@ -41,24 +44,24 @@ export function useSession() {
         if (refreshResponse.ok) {
           const data = await refreshResponse.json();
           if (data.access_token) {
-            setAccessToken(data.access_token);
+            state.setAccessToken(data.access_token);
             const profile = await apiRequest<User>('/users/me', {}, data.access_token);
-            setUser(profile);
+            state.setUser(profile);
           } else {
-            logout();
+            state.logout();
           }
         } else {
-          logout();
+          state.logout();
         }
-      } catch (error) {
-        logout();
+      } catch {
+        state.logout();
       } finally {
         setIsLoading(false);
       }
     }
 
     initSession();
-  }, [accessToken, user, setAccessToken, setUser, logout]);
+  }, [accessToken, user]);
 
   return {
     isAuthenticated: !!accessToken && !!user,

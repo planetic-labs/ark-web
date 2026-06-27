@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { usersApi } from '@/services/api/users';
+import { usersApi, UserAdminUpdateData } from '@/services/api/users';
 import { rolesApi } from '@/services/api/roles';
 import Avatar from '@/components/ui/Avatar';
 import { WarriorBadge } from '@/components/ui/WarriorBadge';
@@ -54,20 +54,20 @@ export default function UserDetailPage() {
       setLastName(user.last_name || '');
       setAvatarUrl(user.avatar_url || '');
       setSelectedRoles(user.roles || []);
-      setSelectedPermissions((user as any).personal_permissions || []);
+      setSelectedPermissions(user.personal_permissions || []);
     }
   }, [user]);
 
   // Update user mutation
   const updateUserMutation = useMutation({
-    mutationFn: (data: any) => usersApi.update(userId, data),
+    mutationFn: (data: UserAdminUpdateData) => usersApi.update(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setSuccessMessage('Профиль успешно обновлен!');
       setTimeout(() => setSuccessMessage(''), 3000);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setErrorMessage(err.message || 'Ошибка при обновлении профиля');
     },
   });
@@ -79,7 +79,7 @@ export default function UserDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       router.push(ROUTES.admin.users);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setErrorMessage(err.message || 'Ошибка при отключении участника');
       setDeactivateStep(0);
       setConfirmName('');
@@ -114,7 +114,7 @@ export default function UserDetailPage() {
     updateUserMutation.mutate({
       first_name: firstName.trim(),
       last_name: lastName.trim(),
-      avatar_url: avatarUrl.trim() || null,
+      avatar_url: avatarUrl.trim() || undefined,
       roles: selectedRoles,
       personal_permissions: selectedPermissions,
     });

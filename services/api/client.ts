@@ -1,22 +1,37 @@
 import { useAuthStore } from '@/stores/useAuthStore';
+import { getBackendUrl } from './config';
+
+export interface ApiErrorData {
+  detail?: string;
+  message?: string;
+  [key: string]: unknown;
+}
 
 export class ApiError extends Error {
-  constructor(public status: number, public data: any) {
+  constructor(public status: number, public data: ApiErrorData | null) {
     super(data?.detail || data?.message || `API Error with status ${status}`);
     this.name = 'ApiError';
   }
 }
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshPromise: Promise<string | null> | null = null;
 
-function subscribeTokenRefresh(cb: (token: string) => void) {
-  refreshSubscribers.push(cb);
-}
-
-function onRefreshed(token: string) {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
+async function performRefresh(): Promise<string | null> {
+  try {
+    const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST' });
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      if (data.access_token) {
+        useAuthStore.getState().setAccessToken(data.access_token);
+        return data.access_token;
+      }
+    }
+    useAuthStore.getState().logout();
+    return null;
+  } catch {
+    useAuthStore.getState().logout();
+    return null;
+  }
 }
 
 export async function apiRequest<T>(
@@ -25,23 +40,6 @@ export async function apiRequest<T>(
   token?: string,
 ): Promise<T> {
   const accessToken = token ?? useAuthStore.getState().accessToken;
-  const getBackendUrl = () => {
-    let url = process.env.INTERNAL_API_URL;
-    if (!url) {
-      if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith('http')) {
-        url = process.env.NEXT_PUBLIC_API_URL;
-      } else if (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.startsWith('http')) {
-        url = process.env.EXPO_PUBLIC_API_URL;
-      }
-    }
-    if (url) {
-      if (!url.endsWith('/api/v1')) {
-        url = url.replace(/\/+$/, '') + '/api/v1';
-      }
-      return url;
-    }
-    return 'http://127.0.0.1:8000/api/v1';
-  };
 
   const baseUrl = typeof window === 'undefined'
     ? getBackendUrl()
@@ -57,56 +55,32 @@ export async function apiRequest<T>(
   });
 
   if (response.status === 401 && !path.includes('/auth/refresh') && !token) {
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
-        const refreshResponse = await fetch('/api/auth/refresh', { method: 'POST' });
-        if (refreshResponse.ok) {
-          const data = await refreshResponse.json();
-          if (data.access_token) {
-            useAuthStore.getState().setAccessToken(data.access_token);
-            isRefreshing = false;
-            onRefreshed(data.access_token);
-          } else {
-            isRefreshing = false;
-            useAuthStore.getState().logout();
-          }
-        } else {
-          isRefreshing = false;
-          useAuthStore.getState().logout();
-        }
-      } catch (err) {
-        isRefreshing = false;
-        useAuthStore.getState().logout();
-      }
+    if (!refreshPromise) {
+      refreshPromise = performRefresh().then((newToken) => {
+        refreshPromise = null;
+        return newToken;
+      });
     }
 
-    return new Promise<T>((resolve, reject) => {
-      subscribeTokenRefresh((newToken) => {
-        resolve(
-          apiRequest<T>(path, {
-            ...options,
-            headers: {
-              ...options.headers,
-              Authorization: `Bearer ${newToken}`,
-            },
-          })
-        );
+    const newToken = await refreshPromise;
+    if (newToken) {
+      return apiRequest<T>(path, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${newToken}`,
+        },
       });
-      
-      setTimeout(() => {
-        if (!useAuthStore.getState().accessToken) {
-          reject(new ApiError(401, { detail: 'Unauthorized' }));
-        }
-      }, 5000);
-    });
+    }
+
+    throw new ApiError(401, { detail: 'Unauthorized' });
   }
 
   if (!response.ok) {
     let errorData = null;
     try {
       errorData = await response.json();
-    } catch (e) {
+    } catch {
       errorData = { detail: response.statusText };
     }
     throw new ApiError(response.status, errorData);

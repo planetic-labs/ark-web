@@ -79,7 +79,7 @@ export default function VideoArchivePage() {
 
   // Simulated player timer
   useEffect(() => {
-    let interval: any;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isPlaying && activeVideo) {
       interval = setInterval(() => {
         setPlaybackTime((prev) => {

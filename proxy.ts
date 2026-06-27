@@ -1,29 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getBackendUrl } from '@/services/api/config';
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
   // Proxy /api/v1 requests to the backend dynamically at runtime
   if (path.startsWith('/api/v1')) {
-    const getBackendUrl = () => {
-      let url = process.env.INTERNAL_API_URL;
-      if (!url) {
-        if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith('http')) {
-          url = process.env.NEXT_PUBLIC_API_URL;
-        } else if (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.startsWith('http')) {
-          url = process.env.EXPO_PUBLIC_API_URL;
-        }
-      }
-      if (url) {
-        if (!url.endsWith('/api/v1')) {
-          url = url.replace(/\/+$/, '') + '/api/v1';
-        }
-        return url;
-      }
-      return 'http://127.0.0.1:8000/api/v1';
-    };
-
     const backendUrl = getBackendUrl();
     const targetPath = path.substring('/api/v1'.length);
     const searchParams = request.nextUrl.search;

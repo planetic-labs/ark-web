@@ -38,8 +38,8 @@ function SetupProfileContent() {
         avatarUrl: avatarUrl.trim() || undefined,
       });
       router.push(ROUTES.chats);
-    } catch (e: any) {
-      setErrorMsg(e.message || 'Произошла ошибка при настройке профиля');
+    } catch (e: unknown) {
+      setErrorMsg(e instanceof Error ? e.message : 'Произошла ошибка при настройке профиля');
     }
   };
 

@@ -32,7 +32,7 @@ export default function ServicesAdminPage() {
       setNewName('');
       setFormError('');
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       setFormError(err.message || 'Ошибка создания сервисного клиента');
     },
   });

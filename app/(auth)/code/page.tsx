@@ -42,8 +42,8 @@ function CodeVerificationContent() {
       } else if (response.next === 'pending_approval') {
         setStatusMsg('Ваш аккаунт ожидает подтверждения Администратором. Пожалуйста, свяжитесь с поддержкой.');
       }
-    } catch (e: any) {
-      setStatusMsg(e.message || 'Введен неверный код или срок его действия истек');
+    } catch (e: unknown) {
+      setStatusMsg(e instanceof Error ? e.message : 'Введен неверный код или срок его действия истек');
     }
   };
 

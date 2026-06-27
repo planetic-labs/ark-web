@@ -27,8 +27,8 @@ export default function LoginPage() {
       } else {
         setErrorMsg(response.error || 'Пользователь не найден или доступ заблокирован');
       }
-    } catch (e: any) {
-      setErrorMsg(e.message || 'Произошла ошибка при отправке запроса');
+    } catch (e: unknown) {
+      setErrorMsg(e instanceof Error ? e.message : 'Произошла ошибка при отправке запроса');
     }
   };
 
