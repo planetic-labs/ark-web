@@ -7,8 +7,10 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin');
     if (origin) {
       const originUrl = new URL(origin);
-      const requestUrl = new URL(request.url);
-      if (originUrl.host !== requestUrl.host) {
+      const expectedHost = process.env.APP_URL
+        ? new URL(process.env.APP_URL).host
+        : new URL(request.url).host;
+      if (originUrl.host !== expectedHost) {
         return NextResponse.json({ detail: 'CSRF Protection: Invalid origin' }, { status: 403 });
       }
     }
